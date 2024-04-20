@@ -1,40 +1,23 @@
-name: Issue Handler
-
-on:
-  workflow_dispatch:
-  issues:
-    types: [opened, labeled, unlabeled]
-
 jobs:
   labeler:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-
-    - name: Handle Issues
+    - continue-on-error: true
+      name: Handle Issues
       uses: jvalkeal/issue-handler@v0.0.6
       with:
+        config: "{\n  \"data\": {\n    \"team\": [\"jvalkeal\"]\n  },\n  \"recipes\"\
+          : [\n    {\n      \"name\": \"Mark new issue to get triaged\",\n      \"\
+          type\": \"ifThen\",\n      \"if\": \"isAction('opened') && !dataInArray('team',\
+          \ actor)\",\n      \"then\": \"labelIssue(['status/need-triage'])\"\n  \
+          \  },\n    {\n      \"name\": \"Manage backport issues\",\n      \"type\"\
+          : \"manageBackportIssues\",\n      \"whenLabeled\": \"labeledStartsWith(['branch/'])\"\
+          ,\n      \"whenUnlabeled\": \"labeledStartsWith(['branch/'])\",\n      \"\
+          whenLabels\": \"labelsContainsAny(['for/backport'])\",\n      \"fromLabels\"\
+          : \"labeledStartsWith(['branch/'])\",\n      \"additionalLabels\": \"'type/backport'\"\
+          ,\n      \"body\": \"'Backport #' + number\"\n    }\n  ]\n}\n"
         token: ${{ secrets.GITHUB_TOKEN }}
-        config: >
-          {
-            "data": {
-              "team": ["jvalkeal"]
-            },
-            "recipes": [
-              {
-                "name": "Mark new issue to get triaged",
-                "type": "ifThen",
-                "if": "isAction('opened') && !dataInArray('team', actor)",
-                "then": "labelIssue(['status/need-triage'])"
-              },
-              {
-                "name": "Manage backport issues",
-                "type": "manageBackportIssues",
-                "whenLabeled": "labeledStartsWith(['branch/'])",
-                "whenUnlabeled": "labeledStartsWith(['branch/'])",
-                "whenLabels": "labelsContainsAny(['for/backport'])",
-                "fromLabels": "labeledStartsWith(['branch/'])",
-                "additionalLabels": "'type/backport'",
-                "body": "'Backport #' + number"
-              }
-            ]
-          }
+name: Issue Handler
+on:
+  repository_dispatch:
+    types: trigger-ga___issue-handler.yml

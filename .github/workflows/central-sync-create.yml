@@ -1,54 +1,40 @@
-name: Central Sync Create
-
-on:
-  workflow_dispatch:
-    inputs:
-      buildName:
-        description: "Artifactory build name"
-        required: true
-      buildNumber:
-        description: "Artifactory build number"
-        required: true
-
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-
-    # to get spec file in .github
-    - uses: actions/checkout@v2
-
-    # Setup jfrog cli
-    - uses: jfrog/setup-jfrog-cli@v4
-      with:
-        version: 2.52.10
+    - continue-on-error: true
+      uses: actions/checkout@v2
+    - continue-on-error: true
       env:
         JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+      uses: jfrog/setup-jfrog-cli@v4
+      with:
+        version: 2.52.10
+    - continue-on-error: true
+      name: Extract Build Id
+      run: 'echo JFROG_CLI_BUILD_NAME=${{ github.event.inputs.buildName }} >> $GITHUB_ENV
 
-    # Extract build id from input
-    - name: Extract Build Id
-      run: |
-        echo JFROG_CLI_BUILD_NAME=${{ github.event.inputs.buildName }} >> $GITHUB_ENV
         echo JFROG_CLI_BUILD_NUMBER=${{ github.event.inputs.buildNumber }} >> $GITHUB_ENV
 
-    # Download released files
-    - name: Download Release Files
-      run: |
-        jf rt download \
-          --spec .github/release-files-spec.json \
-          --spec-vars "buildname=$JFROG_CLI_BUILD_NAME;buildnumber=$JFROG_CLI_BUILD_NUMBER"
-
-    # Create checksums, signatures and create staging repo on central and upload
-    - uses: spring-io/nexus-sync-action@main
+        '
+    - continue-on-error: true
+      name: Download Release Files
+      run: "jf rt download \\\n  --spec .github/release-files-spec.json \\\n  --spec-vars\
+        \ \"buildname=$JFROG_CLI_BUILD_NAME;buildnumber=$JFROG_CLI_BUILD_NUMBER\"\n"
+    - continue-on-error: true
       id: nexus
+      uses: spring-io/nexus-sync-action@main
       with:
-        username: ${{ secrets.OSSRH_S01_TOKEN_USERNAME }}
+        create: true
+        generate-checksums: true
         password: ${{ secrets.OSSRH_S01_TOKEN_PASSWORD }}
         staging-profile-name: ${{ secrets.OSSRH_STAGING_PROFILE_NAME }}
-        create: true
         upload: true
-        generate-checksums: true
-
-    # Print staging repo id
-    - name: Print Staging Repo Id
+        username: ${{ secrets.OSSRH_S01_TOKEN_USERNAME }}
+    - continue-on-error: true
+      name: Print Staging Repo Id
       run: echo ${{ steps.nexus.outputs.staged-repository-id }}
+name: Central Sync Create
+on:
+  repository_dispatch:
+    types: trigger-ga___central-sync-create.yml

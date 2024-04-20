@@ -1,23 +1,18 @@
-name: Labels Manage
-
-on:
-  push:
-    branches:
-      - 'main'
-    paths:
-      - '.github/labels-manage.yml'
-      - '.github/workflows/label-manage.yml'
-  workflow_dispatch:
-
 jobs:
   labeler:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v2
-      - name: Mangle Labels
-        uses: crazy-max/ghaction-github-labeler@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          yaml-file: .github/labels-manage.yml
-          dry-run: false
-          skip-delete: false
+    - continue-on-error: true
+      uses: actions/checkout@v2
+    - continue-on-error: true
+      name: Mangle Labels
+      uses: crazy-max/ghaction-github-labeler@v3
+      with:
+        dry-run: false
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        skip-delete: false
+        yaml-file: .github/labels-manage.yml
+name: Labels Manage
+on:
+  repository_dispatch:
+    types: trigger-ga___label-manage.yml

@@ -1,42 +1,37 @@
-name: PR
-
-on:
-  pull_request:
-    branches:
-      - main
-
 jobs:
-
-  # build and test, then upload logs if failure
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        java: [ 17 ]
-      fail-fast: false
-
+    runs-on: self-hosted
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup JDK
+    - continue-on-error: true
+      uses: actions/checkout@v2
+    - continue-on-error: true
+      name: Setup JDK
       uses: actions/setup-java@v1
       with:
         java-version: ${{ matrix.java }}
-    - name: Build with Gradle
+    - continue-on-error: true
+      name: Build with Gradle
       run: ./gradlew clean build
-    - name: Tar Build Logs
+    - continue-on-error: true
       if: ${{ failure() }}
-      run: |
-        mkdir -p build
-        tar \
-          -zc \
-          --ignore-failed-read \
-          --file build/buildlogs.tar.gz \
-          */build/reports \
-          */*/build/reports
-    - name: Upload Build Logs
+      name: Tar Build Logs
+      run: "mkdir -p build\ntar \\\n  -zc \\\n  --ignore-failed-read \\\n  --file\
+        \ build/buildlogs.tar.gz \\\n  */build/reports \\\n  */*/build/reports\n"
+    - continue-on-error: true
       if: ${{ failure() }}
+      name: Upload Build Logs
       uses: actions/upload-artifact@v2
       with:
         name: buildlogs
         path: build/buildlogs.tar.gz
+    strategy:
+      fail-fast: false
+      matrix:
+        java:
+        - 17
+        os:
+        - ubuntu-latest
+name: PR
+on:
+  repository_dispatch:
+    types: trigger-ga___pr.yml

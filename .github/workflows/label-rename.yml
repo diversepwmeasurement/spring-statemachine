@@ -1,17 +1,18 @@
-name: Labels Rename
-
-on:
-  workflow_dispatch:
-
 jobs:
   labeler:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v2
-      - name: Rename Labels
-        uses: crazy-max/ghaction-github-labeler@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          yaml-file: .github/labels-rename.yml
-          dry-run: false
-          skip-delete: true
+    - continue-on-error: true
+      uses: actions/checkout@v2
+    - continue-on-error: true
+      name: Rename Labels
+      uses: crazy-max/ghaction-github-labeler@v3
+      with:
+        dry-run: false
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        skip-delete: true
+        yaml-file: .github/labels-rename.yml
+name: Labels Rename
+on:
+  repository_dispatch:
+    types: trigger-ga___label-rename.yml

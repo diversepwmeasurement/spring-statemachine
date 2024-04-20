@@ -1,36 +1,24 @@
-name: Stale Issues
-
-on:
-  workflow_dispatch:
-
 jobs:
   stale:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-    - name: Handle Stale Issues
+    - continue-on-error: true
+      name: Handle Stale Issues
       uses: jvalkeal/issue-handler@v0.0.6
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        config: "{\n  \"recipes\": [\n    {\n      \"name\": \"Handle stale issues\"\
+          ,\n      \"type\": \"staleIssues\",\n      \"issueSince\": \"2020-08-01\"\
+          ,\n      \"issueBeforeStale\": 60,\n      \"issueBeforeClose\": 7,\n   \
+          \   \"issueStaleMessage\": \"This issue is stale because it has been open\
+          \ 60 days with no activity. Remove status/stale label or comment or this\
+          \ will be closed in 7 days\",\n      \"issueCloseMessage\": \"Closing stale\
+          \ issue due to inactivity\",\n      \"issueStaleLabel\": \"status/stale\"\
+          ,\n      \"issueCloseLabel\": \"status/closed-as-stale\",\n      \"issueExemptLabels\"\
+          : [\n        \"status/on-hold\",\n        \"type/bug\",\n        \"type/need-investigation\"\
+          \n      ],\n      \"issueUnstaleWhenUpdated\": true\n    }\n  ]\n}\n"
         dry-run: true
-        config: >
-          {
-            "recipes": [
-              {
-                "name": "Handle stale issues",
-                "type": "staleIssues",
-                "issueSince": "2020-08-01",
-                "issueBeforeStale": 60,
-                "issueBeforeClose": 7,
-                "issueStaleMessage": "This issue is stale because it has been open 60 days with no activity. Remove status/stale label or comment or this will be closed in 7 days",
-                "issueCloseMessage": "Closing stale issue due to inactivity",
-                "issueStaleLabel": "status/stale",
-                "issueCloseLabel": "status/closed-as-stale",
-                "issueExemptLabels": [
-                  "status/on-hold",
-                  "type/bug",
-                  "type/need-investigation"
-                ],
-                "issueUnstaleWhenUpdated": true
-              }
-            ]
-          }
+        token: ${{ secrets.GITHUB_TOKEN }}
+name: Stale Issues
+on:
+  repository_dispatch:
+    types: trigger-ga___stale-issues.yml
